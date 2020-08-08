@@ -23,7 +23,6 @@ if { $::env(SYNTH_READ_BLACKBOX_LIB) } {
 	read_liberty -lib -ignore_miss_dir -setattr blackbox $::env(LIB_SYNTH_COMPLETE)
 }
 
-
 if { [info exists ::env(VERILOG_FILES_BLACKBOX)] } {
 	foreach verilog_file $::env(VERILOG_FILES_BLACKBOX) {
 		read_verilog -lib $verilog_file
@@ -136,9 +135,17 @@ set scriptname(1) "scpt_1"
 set scriptname(2) "scpt_2"
 set scriptname(3) "scpt_3"
 
+# ronaldv
+set vIdirsArgs ""
+if {[info exist ::env(VERILOG_INCLUDE_DIRS)]} {
+  foreach dir $::env(VERILOG_INCLUDE_DIRS) {
+    lappend vIdirsArgs "-I$dir"
+  }
+  set vIdirsArgs [join $vIdirsArgs]
+}
 
 for { set i 0 } { $i < [llength $::env(VERILOG_FILES)] } { incr i } {
-  read_verilog [lindex $::env(VERILOG_FILES) $i]
+  read_verilog {*}$vIdirsArgs  [lindex $::env(VERILOG_FILES) $i]
 }
 
 hierarchy -check -top $vtop

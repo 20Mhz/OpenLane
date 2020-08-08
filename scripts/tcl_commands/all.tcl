@@ -56,7 +56,7 @@ proc trim_lib {args} {
 	set trimmed_lib $::env(TMP_DIR)/trimmed.lib
 	set pdk_variant_no_synth_cells $::env(PDK_ROOT)/$::env(PDK)/libs.tech/openlane/$::env(PDK_VARIANT)/no_synth.cells
 	if { [file exists $pdk_variant_no_synth_cells] } {
-		try_catch $::env(SCRIPTS_DIR)/libtrim.pl $::env(LIB_SYNTH) $pdk_variant_no_synth_cells > $trimmed_lib
+    puts [exec perl $::env(SCRIPTS_DIR)/libtrim.pl $::env(LIB_SYNTH) $pdk_variant_no_synth_cells > $trimmed_lib]
 	} else {
 		file copy -force $::env(LIB_SYNTH) $trimmed_lib
 	}

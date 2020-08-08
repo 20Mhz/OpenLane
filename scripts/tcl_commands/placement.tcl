@@ -112,7 +112,7 @@ proc run_placement {args} {
 # |----------------------------------------------------|
 	set ::env(CURRENT_STAGE) placement
 
-	global_placement
+	global_placement_or
 	if { $::env(RUN_RESIZER_OVERBUFFER) == 1} {
 		repair_wire_length
 	}
@@ -132,7 +132,7 @@ proc run_placement {args} {
 	# outputs: 4_1_place_gp.def
 
 	# detailed 4_placement
-	detailed_placement
+	detailed_placement_or
 }
 
 proc repair_wire_length {args} {

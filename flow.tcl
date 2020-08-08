@@ -7,6 +7,7 @@ set ::env(OPENLANE_ROOT) [file dirname [file normalize [info script]]]
 
 lappend ::auto_path "$::env(OPENLANE_ROOT)/scripts/"
 package require openlane; # provides the utils as well
+set ::env(VHDL) 0
 
 proc run_non_interactive_mode {args} {
 	set args_copy $args
@@ -19,7 +20,14 @@ proc run_non_interactive_mode {args} {
 
 	prep {*}$args
 
-	run_synthesis
+	if { $::env(VHDL) } {
+		cd ~/Projects/leon3mp
+		pwd
+		exec make leon3mp | tee loglog
+	  cd -	
+	} else {
+		run_synthesis
+	}
 	run_floorplan
 	run_placement
 	#run_cts
