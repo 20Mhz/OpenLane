@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if { [file exists $::env(TMP_DIR)/top_level.lef] } {
+if { [info exists ::env(CONTEXTUAL_IO_FLAG_)] } {
 	read_lef $::env(TMP_DIR)/top_level.lef
-	ioPlacer::set_num_slots 2
+	#ppl::set_num_slots 2
 }
 
 
@@ -28,25 +28,27 @@ if {[catch {read_def $::env(CURRENT_DEF)} errmsg]} {
 	exit 1
 }
 
-ioPlacer::set_hor_metal_layer [expr $::env(FP_IO_HMETAL) + 1]
-ioPlacer::set_ver_metal_layer [expr $::env(FP_IO_VMETAL) + 1]
+#ppl::set_rand_seed 42
 
-puts "\[INFO\]: Vertical Metal Layer: [ioPlacer::get_ver_metal_layer]"
-puts "\[INFO\]: Horizontal Metal Layer: [ioPlacer::get_hor_metal_layer]"
+#ppl::set_min_distance 5
+ppl::set_hor_length $::env(FP_IO_HLENGTH)
+ppl::set_ver_length $::env(FP_IO_VLENGTH)
+ppl::set_hor_length_extend $::env(FP_IO_VEXTEND)
+ppl::set_ver_length_extend $::env(FP_IO_HEXTEND)
+ppl::set_ver_thick_multiplier $::env(FP_IO_VTHICKNESS_MULT)
+ppl::set_hor_thick_multiplier $::env(FP_IO_HTHICKNESS_MULT)
 
-ioPlacer::set_rand_seed 42
+set opts ""
 if { $::env(FP_IO_MODE) == 1 } {
-	ioPlacer::set_random_mode 2; # 1 and 3 have different groupings
-} else {
-	ioPlacer::set_random_mode 0
+    set opts "-random"
 }
-ioPlacer::set_hor_length $::env(FP_IO_HLENGTH)
-ioPlacer::set_ver_length $::env(FP_IO_VLENGTH)
-ioPlacer::set_hor_length_extend $::env(FP_IO_VEXTEND)
-ioPlacer::set_ver_length_extend $::env(FP_IO_HEXTEND)
-ioPlacer::set_ver_thick_multiplier $::env(FP_IO_VTHICKNESS_MULT)
-ioPlacer::set_hor_thick_multiplier $::env(FP_IO_HTHICKNESS_MULT)
 
-ioPlacer::run_io_placement
+set tech [[ord::get_db] getTech]
+set HMETAL [[$tech findRoutingLayer $::env(FP_IO_HMETAL)] getName]
+set VMETAL [[$tech findRoutingLayer $::env(FP_IO_VMETAL)] getName]
+place_pins $opts\
+	-random_seed 42 \
+	-hor_layers $HMETAL \
+	-ver_layers $VMETAL
 
 write_def $::env(SAVE_DEF)

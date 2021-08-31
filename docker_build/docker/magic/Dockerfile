@@ -13,31 +13,34 @@
 # limitations under the License.
 
 # syntax = docker/dockerfile:1.0-experimental
-FROM centos:centos6 as build
+FROM centos:centos7 as build
 
 # Common development tools and libraries (kitchen sink approach)
-RUN yum groupinstall -y "Development Tools" "Development Libraries"
+RUN yum groupinstall -y "Development Tools"
 RUN yum -y install centos-release-scl && \
     yum -y install devtoolset-8 devtoolset-8-libatomic-devel
 
 # python 3.6
-RUN yum install -y https://repo.ius.io/ius-release-el6.rpm
+RUN yum install -y https://repo.ius.io/ius-release-el7.rpm
 RUN yum install -y python36u python36u-libs python36u-devel python36u-pip python36u-tkinter
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 60
 
 # magic dependencies
-RUN yum install -y csh wget tcl-devel tk-devel libX11-devel cairo-devel ncurses-devel
+RUN yum install -y mesa-libGLU-devel csh wget tcl-devel tk-devel libX11-devel cairo-devel ncurses-devel
 
 # git clone magic components
-RUN git clone git://opencircuitdesign.com/magic magic_20072020
+# Upstream is git://opencircuitdesign.com/magic, but servers are not stable enough for CI.
+ARG MAGIC_REPO=https://github.com/rtimothyedwards/magic
+ARG MAGIC_COMMIT=958d6f16701c1ee25e27440381b5c2c37b5fee7c
+RUN git clone ${MAGIC_REPO} magic_21012020
 
-WORKDIR magic_20072020
+WORKDIR magic_21012020
 
-RUN git checkout e453f130eee28f8b1d0a0e22f1eef5d4663751fd
+RUN git checkout ${MAGIC_COMMIT}
 
 # build
 RUN ./configure --prefix=/build && \
-    make -j4 && \
+    make -j$(nproc) && \
     make install
 
 RUN mkdir -p /build/version/

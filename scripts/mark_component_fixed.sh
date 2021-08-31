@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2020 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,4 +18,4 @@ if [[ $# -lt 2 ]]; then
     exit
 fi
 
-sed -ie "/^- [^[:space:]]\+ $1 .\+;$/ s/PLACED/FIXED/g" $2
+sed -i -E "/^.*- [^[:space:]]+ $1 .+;$/ s/PLACED/FIXED/g" $2

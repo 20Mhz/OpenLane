@@ -1573,6 +1573,8 @@ class SoCFloorplanner(ttk.Frame):
                                 newpad['name'] = vlogparse[1] + '[' + str(i) + ']'
                             else:
                                 newpad['name'] = vlogparse[1]
+                            # hack 
+                            newpad['name'] = newpad['name'].replace("\\", "")
                             newpad['cell'] = vlogparse[0]
                             padcell = next(item for item in celldefs if item['name'] == vlogparse[0])
                             newpad['iolib'] = padcell['iolib']
@@ -2391,7 +2393,7 @@ class SoCFloorplanner(ttk.Frame):
                 if lparse[0] == '+':
                     if lparse[1] == 'PLACED':
                         lparse[1] = 'FIXED'
-                        neworient = self.rotate_orientation(lparse[6])
+                        neworient = lparse[6]
                         lparse[6] = neworient
                         line = ' '.join(lparse)
 

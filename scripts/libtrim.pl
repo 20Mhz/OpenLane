@@ -18,13 +18,14 @@
 
 use warnings;
 use strict;
-use feature "switch";
-#use experimental qw( switch );
+use feature qw( switch );
+no if $] >= 5.018, warnings => qw( experimental::smartmatch );
 
-open (LIB, $ARGV[0]) or die("Couldn't open $ARGV[0]");
 open (CELLS,'<', $ARGV[1]) or die("Couldn't open $ARGV[1]");
+
 my @cells = ();
 while(<CELLS>){ #cells to remove
+  next if (/\#/);
   chop($_);
   push @cells, $_;
 }
@@ -32,41 +33,47 @@ close(CELLS);
 
 my $state = 0;
 my $count = 0;
-while(my $line=<LIB>){
-   given ($state) {
-     when ($state==0){
-       #print $line;
-       if ($line =~ /cell\s*\(\"?(.*?)\"?\)/) {
-          #print "$1\n";
-          if (grep { $_ eq $1 } @cells) {
-            $state = 2;
-            print "/* removed $1 */\n";
+for ($ARGV[0]) {
+  for (split) {
+    open (LIB, $_) or die("Couldn't open $_");
+
+    while(my $line=<LIB>){
+      given ($state) {
+        when ($state==0){
+          #print $line;
+          if ($line =~ /cell\s*\(\"?(.*?)\"?\)/) {
+            #print "$1\n";
+            if (grep { $_ eq $1 } @cells) {
+              $state = 2;
+              print "/* removed $1 */\n";
+            } else {
+              $state = 1;
+              print $line;
+            }
+            $count = 1;
           } else {
-            $state = 1;
             print $line;
           }
-          $count = 1;
-       } else {
-         print $line;
-       }
-     }
+        }
 
-     when($state==1){
-        $count++ if ($line =~ /\{/);
-        $count-- if ($line =~ /\}/);
-        $state = 0 if($count==0);
-        print $line;
+        when($state==1){
+          $count++ if ($line =~ /\{/);
+          $count-- if ($line =~ /\}/);
+          $state = 0 if($count==0);
+          print $line;
         }
 
 
-     when($state==2){
-        $count++ if ($line =~ /\{/);
-        $count-- if ($line =~ /\}/);
-        $state = 0 if($count==0);
+        when($state==2){
+          $count++ if ($line =~ /\{/);
+          $count-- if ($line =~ /\}/);
+          $state = 0 if($count==0);
         }
 
 
-     }
+      }
+    }
+
+    close(LIB);
+  }
 }
-
-close(LIB);

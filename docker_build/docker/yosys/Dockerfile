@@ -13,9 +13,9 @@
 # limitations under the License.
 
 # syntax = docker/dockerfile:1.0-experimental
-FROM centos:centos6 as build
+FROM centos:centos7 as build
 
-RUN yum groupinstall -y "Development Tools" "Development Libraries"
+RUN yum groupinstall -y "Development Tools"
 RUN yum -y install centos-release-scl && \
     yum -y install curl libffi-devel readline-devel tcl tcl-devel graphviz xdot
 
@@ -34,18 +34,10 @@ ENV CC=/opt/rh/devtoolset-8/root/usr/bin/gcc \
 
 
 
-RUN yum install -y https://repo.ius.io/ius-release-el6.rpm
+RUN yum install -y https://repo.ius.io/ius-release-el7.rpm
 RUN yum install -y python36u python36u-pip
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 60
 
-
-#ENV CC=/opt/rh/devtoolset-6/root/usr/bin/gcc \
-    #CPP=/opt/rh/devtoolset-6/root/usr/bin/cpp \
-    #CXX="/opt/rh/devtoolset-6/root/usr/bin/g++" \
-    #PATH=/opt/rh/devtoolset-6/root/usr/bin:$PATH \
-    #LD_LIBRARY_PATH=/opt/rh/devtoolset-6/root/usr/lib64:/opt/rh/devtoolset-6/root/usr/lib:/opt/rh/devtoolset-6/root/usr/lib64/dyninst:/opt/rh/devtoolset-6/root/usr/lib/dyninst:/opt/rh/devtoolset-6/root/usr/lib64:/opt/rh/devtoolset-6/root/usr/lib:$LD_LIBRARY_PATH
-
-#RUN yum install -y clang
 
 # https://github.com/YosysHQ/yosys/issues/332
 RUN yum install -y wget autoconf && \
@@ -56,20 +48,13 @@ RUN yum install -y wget autoconf && \
     make -j$(nproc) && \
     make install
 
-# download public key for github.com
-# RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
-
 # git clone yosys
-RUN git clone https://github.com/YosysHQ/yosys yosys && \
-	cd yosys && \
-	git checkout 347dd01c2f7dff6e8222c5f9d360f84a17c937b5
+ARG YOSYS_REPO=https://github.com/YosysHQ/yosys
+ARG YOSYS_COMMIT=d061b0e41a2023b5e72794563b94d6a9b5ab41a1
 
-#RUN git clone https://github.com/antmicro/yosys yosys &&\
-	#cd yosys &&\
-	#git checkout fe58e937ef87fdb157dd89c365bb6a570fe616ea
-
-# build yosys
+RUN git clone ${YOSYS_REPO} yosys
 WORKDIR yosys
+RUN git checkout ${YOSYS_COMMIT}
 
 
 RUN make PREFIX=/build config-gcc \

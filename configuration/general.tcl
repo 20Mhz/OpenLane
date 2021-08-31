@@ -14,30 +14,64 @@
 
 # default pdk
 set ::env(PDK) "sky130A"
-set ::env(PDK_VARIANT) "sky130_fd_sc_hd"
+if { ! [info exists ::env(STD_CELL_LIBRARY)] } {
+    set ::env(STD_CELL_LIBRARY) "sky130_fd_sc_hd"
+} else {
+    puts_info "Standard Cell Library: $::env(STD_CELL_LIBRARY)"
+}
 set ::env(USE_GPIO_PADS) 0
 
 # Flow control defaults
 set ::env(LEC_ENABLE) 0
+set ::env(YOSYS_REWRITE_VERILOG) 0
+
 set ::env(RUN_MAGIC) 1
 set ::env(MAGIC_PAD) 0
-set ::env(MAGIC_ZEROIZE_ORIGIN) 1
+set ::env(MAGIC_ZEROIZE_ORIGIN) 0
 set ::env(MAGIC_GENERATE_GDS) 1
 set ::env(MAGIC_GENERATE_LEF) 1
+set ::env(MAGIC_GENERATE_MAGLEF) 1
+set ::env(MAGIC_WRITE_FULL_LEF) 0
+set ::env(MAGIC_DRC_USE_GDS) 1
+set ::env(MAGIC_EXT_USE_GDS) 0
+set ::env(MAGIC_INCLUDE_GDS_POINTERS) 0
+set ::env(MAGIC_DISABLE_HIER_GDS) 1
+set ::env(MAGIC_CONVERT_DRC_TO_RDB) 1
+
+set ::env(KLAYOUT_XOR_GDS) 1
+set ::env(KLAYOUT_XOR_XML) 1
+
 set ::env(RUN_ROUTING_DETAILED) 1
 set ::env(RUN_SIMPLE_CTS) 0
-
-set ::env(RUN_RESIZER_OVERBUFFER) 0
+set ::env(CLOCK_PERIOD) "10.0"
+set ::env(RUN_KLAYOUT) 1
+set ::env(TAKE_LAYOUT_SCROT) 0
+set ::env(RUN_KLAYOUT_DRC) 0
+set ::env(KLAYOUT_DRC_KLAYOUT_GDS) 0
+set ::env(RUN_KLAYOUT_XOR) 1
+set ::env(USE_ARC_ANTENNA_CHECK) 1
 
 set ::env(FILL_INSERTION) 1
+set ::env(TAP_DECAP_INSERTION) 1
 
 set ::env(WIDEN_SITE) 1
-set ::env(WIDEN_SITE_IS_FACTOR) 1 
+set ::env(WIDEN_SITE_IS_FACTOR) 1
 
+set ::env(RUN_SPEF_EXTRACTION) 1
+set ::env(SPEF_WIRE_MODEL) "L"
+set ::env(SPEF_EDGE_CAP_FACTOR) 1
+
+set ::env(RUN_CVC) 1
+
+set ::env(WIRE_RC_LAYER) "met1"; # Used for estimate_parasitics
+set ::env(GENERATE_FINAL_SUMMARY_REPORT) 1
 # 0: no diodes
 # 1: spray inputs with diodes
 # 2: spray inputs with fake diodes first then fix up the violators with real ones
-set ::env(DIODE_INSERTION_STRATEGY) 1
+# 3: use FR Antenna Avoidance flow
+# 4: Spray diodes on design pins, and add diodes where they need to be added for each macro.
+# 5: Same as 2 but behaves like 4.
+set ::env(DIODE_INSERTION_STRATEGY) 3
 
 # psn
 if { [file exists /build/transforms/] } {

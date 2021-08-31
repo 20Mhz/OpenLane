@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # syntax = docker/dockerfile:1.0-experimental
-FROM centos:centos6 as build
+FROM centos:centos7 as build
 
 
 # install gcc 7
@@ -34,8 +34,8 @@ ENV CC=/opt/rh/devtoolset-7/root/usr/bin/gcc \
 
 
 RUN yum install -y wget && \
-	wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm && \
-	yum install -y epel-release-latest-6.noarch.rpm && \
+	wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
+	yum install -y epel-release-latest-7.noarch.rpm && \
 	yum -y install ninja-build
 
 # Install CMake
@@ -43,8 +43,11 @@ RUN wget https://cmake.org/files/v3.14/cmake-3.14.0-Linux-x86_64.sh && \
     chmod +x cmake-3.14.0-Linux-x86_64.sh  && \
     ./cmake-3.14.0-Linux-x86_64.sh --skip-license --prefix=/usr/local
 
-RUN git clone https://github.com/YosysHQ/padring \
-	&& cd padring 
+ARG PADRING_REPO=https://github.com/ax3ghazy/padring
+ARG PADRING_COMMIT=a88faf5a4faef75ff241276599fef81c3653cb70
+RUN git clone ${PADRING_REPO} \
+	&& cd padring \
+        && git checkout ${PADRING_COMMIT}
 
 
 WORKDIR padring

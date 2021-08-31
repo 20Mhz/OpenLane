@@ -16,7 +16,8 @@
 
 import os
 import sys
-
+import pandas as pd
+import re
 
 def get_design_path(design):
     path = os.path.abspath(design) + '/'
@@ -41,3 +42,51 @@ def get_run_path(design, tag):
     )
 
     return DEFAULT_PATH
+
+def get_design_name(design, config):
+        design_path= get_design_path(design=design)
+        if design_path is None:
+            print("{design} not found, skipping...".format(design=design))
+            return "[INVALID]: design path doesn't exist"
+        config_file = "{design_path}/{config}.tcl".format(
+                design_path=design_path,
+                config=config,
+        )
+        try:
+            config_file_opener = open(config_file, "r")
+            configs = config_file_opener.read()
+            config_file_opener.close()
+            pattern = re.compile(r'\s*?set ::env\(DESIGN_NAME\)\s*?(\S+)\s*')
+            for name in re.findall(pattern, configs):
+                    return name.replace("\"","")
+            return "[INVALID]: design name doesn't exist inside the config file!"
+        except OSError:
+            return "[INVALID]: design config doesn't exist"
+
+# addComputedStatistics adds: CellPerMMSquaredOverCoreUtil, suggested_clock_period, and suggested_clock_frequency to a report.csv
+def addComputedStatistics(filename):
+    data = pd.read_csv(filename, error_bad_lines=False)
+    df = pd.DataFrame(data)
+
+    diearea_mm2_index = df.columns.get_loc("DIEAREA_mm^2")
+    df.insert(diearea_mm2_index,
+        column='(Cell/mm^2)/Core_Util',
+        value= df['CellPer_mm^2'] / (df['FP_CORE_UTIL'] / 100),
+        allow_duplicates=True
+    )
+
+    suggest_clock_period = df['CLOCK_PERIOD'] - df['spef_wns']
+    clock_period_index = df.columns.get_loc("CLOCK_PERIOD")
+    df.insert(
+        clock_period_index,
+        column='suggested_clock_period',
+        value=suggest_clock_period,
+        allow_duplicates=True
+    )
+    df.insert(
+        clock_period_index,
+        column='suggested_clock_frequency',
+        value=1000.0/suggest_clock_period,
+        allow_duplicates=True
+    )
+    df.to_csv(filename)

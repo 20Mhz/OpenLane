@@ -13,27 +13,53 @@
 # limitations under the License.
 
 # syntax = docker/dockerfile:1.0-experimental
-FROM centos:centos6 as build
+FROM centos:centos7 as build
 
 # RUN useradd -m openlane
 # RUN usermod -aG wheel openlane
 # USER openlane
 
 # install base dependencies
-RUN yum install -y git tcl tk libjpeg libgomp libXext libSM libXft libffi cairo gettext Xvfb
+# including python 3.6
+RUN yum install -y https://repo.ius.io/ius-release-el$(rpm -E '%{rhel}').rpm && \
+	yum install -y \
+		make \
+		cairo \
+		gettext \
+		gdb \
+		git \
+		libffi \
+		libgomp \
+		libjpeg \
+		libSM \
+		libXext \
+		libXft \
+		python36u \
+		python36u-pip \
+		python36u-tkinter \
+		strace \
+		tcl \
+		tcllib \
+		tk \
+		wget \
+		Xvfb && \
+	yum clean all && \
+	rm -rf /var/cache/yum
 
-# python 3.6
-RUN yum install -y https://repo.ius.io/ius-release-el6.rpm
-RUN yum install -y python36u python36u-pip python36u-tkinter
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 60
 
 # Install python dependencies
-RUN pip3.6 install --upgrade pip && \
-    pip install matplotlib && \
-    pip install jinja2 && \
-    pip install pandas
+RUN pip3.6 install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir \
+		matplotlib \
+		"jinja2<3.0.0" \
+		pandas \
+		install \
+		XlsxWriter
 
-RUN yum install -y tcllib
+# for magic
+RUN yum install -y mesa-libGLU-devel
+
 
 ENV OPENLANE_ROOT=/openLANE_flow
 ENV OPENROAD=/build/
@@ -43,19 +69,36 @@ ENV PATH=$OPENLANE_ROOT:$OPENLANE_ROOT/scripts:$OPENROAD/bin:$OPENROAD/bin/Linux
 ENV LD_LIBRARY_PATH=$OPENROAD/lib:$OPENROAD/lib/Linux-x86_64:$LD_LIBRARY_PATH
 ENV MANPATH=$OPENROAD/share/man:$MANPATH
 
+# install klayout
+RUN yum install -y which patch
+ADD ./klayout.tar.gz /
+RUN yum localinstall -y /build/klayout-*.rpm
 
-COPY ./openroad_tools.tar.gz /
+# install TclX package for Tcl to handle process interrupts 
+
+# Update GIT
+RUN yum install -y https://packages.endpoint.com/rhel/7/os/x86_64/endpoint-repo-1.7-1.x86_64.rpm && \
+	yum install -y git
+	
+RUN yum install -y tclx
+RUN pip3 install --no-cache-dir click pyyaml
+
+RUN git config --global user.name "OpenLane User" 
+RUN git config --global user.email "openlane.user@localhost"
+
+ARG CACHE_INVALIDATOR=1
+RUN echo "$CACHE_INVALIDATOR"
+
+ADD ./openroad_tools.tar.gz /
+COPY ./.tclshrc /
 COPY ./.tclshrc /root
-RUN tar -xzf openroad_tools.tar.gz && \
-    rm -rf openroad_tools.tar.gz
 
-COPY ./openLANE_flow.tar.gz /
-RUN mkdir /openLANE_flow
-RUN tar -xzf openLANE_flow.tar.gz -C openLANE_flow&& \
-    rm -rf openLANE_flow.tar.gz
+ADD ./openLANE_flow.tar.gz $OPENLANE_ROOT
 
-# install opendb python
-RUN cd $OPENROAD/OpenDB_python/&& python3 setup.py install
-RUN rm -rf $OPENROAD/OpenDB_python
+WORKDIR $OPENLANE_ROOT
 
-WORKDIR /openLANE_flow
+ENV OPENROAD_BIN openroad
+
+ADD ./tool_metadata.yml /tool_metadata.yml
+
+CMD /bin/bash
