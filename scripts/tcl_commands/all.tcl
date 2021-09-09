@@ -43,10 +43,10 @@ proc set_netlist {netlist args} {
     set ::env(CURRENT_NETLIST) $netlist
 
     set replace [string map {/ \\/} $::env(CURRENT_NETLIST)]
-    try_catch sed -i -e "s/\\(set ::env(CURRENT_NETLIST)\\).*/\\1 $replace/" "$::env(GLB_CFG_FILE)"
+    try_catch gsed -i -e "s/\\(set ::env(CURRENT_NETLIST)\\).*/\\1 $replace/" "$::env(GLB_CFG_FILE)"
 
     set replace [string map {/ \\/} $::env(PREV_NETLIST)]
-    try_catch sed -i -e "s/\\(set ::env(PREV_NETLIST)\\).*/\\1 $replace/" "$::env(GLB_CFG_FILE)"
+    try_catch gsed -i -e "s/\\(set ::env(PREV_NETLIST)\\).*/\\1 $replace/" "$::env(GLB_CFG_FILE)"
 
     if { [info exists flags_map(-lec)] && [file exists $::env(PREV_NETLIST)] } {
         logic_equiv_check -rhs $::env(PREV_NETLIST) -lhs $::env(CURRENT_NETLIST)
@@ -57,14 +57,14 @@ proc set_def {def} {
     puts_info "Changing layout from $::env(CURRENT_DEF) to $def"
     set ::env(CURRENT_DEF) $def
     set replace [string map {/ \\/} $def]
-    exec sed -i -e "s/\\(set ::env(CURRENT_DEF)\\).*/\\1 $replace/" "$::env(GLB_CFG_FILE)"
+    exec gsed -i -e "s/\\(set ::env(CURRENT_DEF)\\).*/\\1 $replace/" "$::env(GLB_CFG_FILE)"
 }
 
 proc set_guide {guide} {
     puts_info "Changing layout from $::env(CURRENT_GUIDE) to $guide"
     set ::env(CURRENT_GUIDE) $guide
     set replace [string map {/ \\/} $guide]
-    exec sed -i -e "s/\\(set ::env(CURRENT_GUIDE)\\).*/\\1 $replace/" "$::env(GLB_CFG_FILE)"
+    exec gsed -i -e "s/\\(set ::env(CURRENT_GUIDE)\\).*/\\1 $replace/" "$::env(GLB_CFG_FILE)"
 }
 
 proc prep_lefs {args} {

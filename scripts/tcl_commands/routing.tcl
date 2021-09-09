@@ -46,7 +46,7 @@ proc global_routing_fastroute {args} {
 		set prevGUIDE2 $::env(SAVE_GUIDE)
 		set prevLOG1 $saveLOG
 		set prevLOG2 $saveLOG
-		set prevAntennaVal [exec grep "INFO GRT-0012\] Antenna violations:" [index_file $::env(fastroute_log_file_tag).log 0] -s | tail -1 | sed -r "s/.*\[^0-9\]//"]
+		set prevAntennaVal [exec grep "INFO GRT-0012\] Antenna violations:" [index_file $::env(fastroute_log_file_tag).log 0] -s | tail -1 | gsed -r "s/.*\[^0-9\]//"]
 		while {$iter <= $::env(GLB_RT_MAX_DIODE_INS_ITERS) && $prevAntennaVal > 0} {
 			set ::env(SAVE_DEF) [index_file $::env(fastroute_tmp_file_tag)_$iter.def]
 			set ::env(SAVE_GUIDE) [index_file $::env(fastroute_tmp_file_tag)_$iter.guide 0]
@@ -57,7 +57,7 @@ proc global_routing_fastroute {args} {
 			puts_info "Antenna Violations Previous: $prevAntennaVal"
 			set ::env(fastroute_report_file_tag) [index_file $report_tag_saver 0]
 			try_catch $::env(OPENROAD_BIN) -exit $::env(SCRIPTS_DIR)/openroad/or_groute.tcl |& tee $::env(TERMINAL_OUTPUT) $saveLOG
-			set currAntennaVal [exec grep "#Antenna violations:"  $saveLOG -s | tail -1 | sed -r "s/.*\[^0-9\]//"]
+			set currAntennaVal [exec grep "#Antenna violations:"  $saveLOG -s | tail -1 | gsed -r "s/.*\[^0-9\]//"]
 			puts_info "Antenna Violations Current: $currAntennaVal"
 			if { $currAntennaVal >= $prevAntennaVal } {
 				set iter [expr $iter - 1]
@@ -407,7 +407,7 @@ proc run_routing {args} {
 	# remove .extra\d+ "pins" so that magic
 	# generates shapes for each stripes without the ".extra" postfix
 	# until OpenDB can understand this syntax...
-	exec sed \
+	exec gsed \
 		-i -E {/^PINS/,/^END PINS/ s/\.extra[[:digit:]]+(.*USE (GROUND|POWER))/\1/g} \
 		$::env(CURRENT_DEF)
 
